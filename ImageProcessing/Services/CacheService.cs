@@ -17,11 +17,20 @@ namespace ImageProcessingApi.Services
 
         // Attempts to retrieve a cached item by key.
         // If the key exists, returns the byte array; otherwise, returns null.
-
+        public byte[] Get(string key)
+        {
+            // Try to get the value from the cache, returning null if not found
+            _cache.TryGetValue(key, out var cachedData);
+            return cachedData;
+        }
 
 
         // Stores or updates a cached item in the dictionary with the given key and byte array value.
-       
 
+        public void Set(string key, byte[] data)
+        {
+            // Add the item to the cache or update it if the key already exists
+            _cache[key] = data;
+        }
     }
 }

@@ -32,22 +32,27 @@ namespace ImageProcessingApi.Middleware
             // Capture the current UTC timestamp
             var now = DateTime.UtcNow;
 
-            // Get the list of timestamps for this key, or create a new one if it doesn’t exist
+            // Get the list of timestamps for this key, or create a new one if it doesnâ€™t exist
+            var requests = _requests.GetOrAdd(key, _ => new List<DateTime>());
 
             // Lock the list to make it thread-safe
             lock (requests)
             {
                 // Remove timestamps older than the allowed interval
-               
+                var cutoff = now.AddSeconds(-_intervalSeconds);
+                requests.RemoveAll(timestamp => timestamp < cutoff);
 
                 // Check if the number of recent requests exceeds the limit
                 if (requests.Count >= _limit)
                 {
                     // Respond with HTTP 429 Too Many Requests
-
+                    context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
 
                     // Tell the client how long to wait before retrying
-                   // context.Response.WriteAsync("Rate limit exceeded.");
+                    var oldestRequest = requests.Min();
+                    var resetTime = (int)(oldestRequest.AddSeconds(_intervalSeconds) - now).TotalSeconds;
+                    context.Response.Headers.Add("Retry-After", resetTime.ToString());
+                    context.Response.WriteAsync("Rate limit exceeded. Please try again later.");
 
 
                     return; // End the request here

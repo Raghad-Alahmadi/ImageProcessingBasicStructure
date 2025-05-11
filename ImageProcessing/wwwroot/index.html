@@ -108,8 +108,8 @@
             });
 
             if (response.ok) {
-                const apiKey = await response.text();
-                document.getElementById('apiKey').value = apiKey;
+                const data = await response.json();
+                document.getElementById('apiKey').value = data.apiKey;
             } else {
                 alert("Failed to generate API key.");
             }
